@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register - CloudCopy</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background: #f4f4f4;
+    }
+    .container {
+      background: white;
+      padding: 20px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      border-radius: 8px;
+      width: 350px;
+      text-align: center;
+    }
+    input {
+      width: 100%;
+      padding: 5.5px;
+      margin: 10px 0;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+    }
+    .btn {
+      background: #1092c5;
+      color: white;
+      border: none;
+      padding: 10px;
+      width: 100%;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+    .btn:hover {
+      background: #007bb5;
+    }
+    .error {
+      color: red;
+      font-size: 14px;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h2>Register</h2>
+    <form id="registerForm">
+      <input type="text" id="fullName" placeholder="Enter your full name">
+      <div id="nameError" class="error"></div>
+      <input type="email" id="email" placeholder="Enter your email">
+      <div id="emailError" class="error"></div>
+      <input type="password" id="password" placeholder="Enter your password">
+      <div id="passwordError" class="error"></div>
+      <input type="password" id="confirmPassword" placeholder="Confirm password">
+      <div id="confirmPasswordError" class="error"></div>
+      <button type="submit" class="btn">Register</button>
+    </form>
+    <p>Already have an account? <a href="login.html">Login</a></p>
+  </div>
+
+  <script>
+    document.getElementById('registerForm').addEventListener('submit', function(event) {
+      event.preventDefault();
+
+      let fullName = document.getElementById('fullName').value;
+      let email = document.getElementById('email').value;
+      let password = document.getElementById('password').value;
+      let confirmPassword = document.getElementById('confirmPassword').value;
+      let nameError = document.getElementById('nameError');
+      let emailError = document.getElementById('emailError');
+      let passwordError = document.getElementById('passwordError');
+      let confirmPasswordError = document.getElementById('confirmPasswordError');
+
+      nameError.textContent = "";
+      emailError.textContent = "";
+      passwordError.textContent = "";
+      confirmPasswordError.textContent = "";
+
+      if (fullName.length < 3) {
+        nameError.textContent = "Full name must be at least 3 characters.";
+        return;
+      }
+      if (!email.includes('@')) {
+        emailError.textContent = "Please enter a valid email.";
+        return;
+      }
+      if (password.length < 6) {
+        passwordError.textContent = "Password must be at least 6 characters long.";
+        return;
+      }
+      if (password !== confirmPassword) {
+        confirmPasswordError.textContent = "Passwords do not match.";
+        return;
+      }
+
+      alert("Registration successful!");
+      window.location.href = "login.html"; // Redirect after successful registration
+    });
+  </script>
+
+</body>
+</html>

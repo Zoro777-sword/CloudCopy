@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>CloudCopy - Print Preview</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .document-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+        
+        .portrait-container {
+            width: 170px;
+            height: 220px;
+        }
+        
+        .landscape-container {
+            width: 220px;
+            height: 170px;
+        }
+        
+        .document-preview {
+            max-width: 100%;
+            max-height: 100%;
+            transition: transform 0.3s ease;
+        }
+        
+        .portrait {
+            transform: rotate(0deg);
+        }
+        
+        .landscape {
+            transform: rotate(90deg);
+        }
+        
+        /* Add grayscale filter class */
+        .grayscale {
+            filter: grayscale(100%);
+        }
+
+        /* Button styles */
+        button {
+            background-color: #0d96cc;
+            color: white;
+        }
+
+        .bg-green-500 {
+            background-color: #0d96cc !important;
+        }
+
+        .border-green-500 {
+            border-color: #0d96cc !important;
+        }
+
+        .text-green-500 {
+            color: #0d96cc !important;
+        }
+
+        /* Navbar styles */
+        .nav-title {
+            color: #0d96cc;
+            font-weight: 700;
+            font-size: 1.5rem;
+            letter-spacing: 0.5px;
+        }
+
+        .nav-subtitle {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .search-input {
+            border: 1px solid #e2e8f0;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            border-color: #0d96cc;
+            box-shadow: 0 0 0 2px rgba(13, 150, 204, 0.1);
+        }
+    </style>
+    <script>
+        // Print settings variables
+        let pricePerPage = 3; // Default price for B&W
+        let currentOrientation = 'portrait'; // Default orientation
+        let uploadedImages = [];
+        let isBW = false; // Track if B&W filter is applied
+
+        // Load images from localStorage on page load
+        window.onload = function() {
+            const imagesJson = localStorage.getItem('cloudCopyImages');
+            if (imagesJson) {
+                uploadedImages = JSON.parse(imagesJson);
+                
+                // Check if we have images
+                if (uploadedImages.length === 0) {
+                    // Redirect back to upload page if no images
+                    alert('No images found. Please upload images first.');
+                    window.location.href = 'upload.html';
+                    return;
+                }
+                
+                // Create preview elements for each uploaded image
+                const previewContainer = document.getElementById('document-previews');
+                previewContainer.innerHTML = '';
+                
+                uploadedImages.forEach((image, index) => {
+                    const previewDiv = document.createElement('div');
+                    previewDiv.className = 'bg-white shadow-md rounded-md p-4 ' + (index > 0 ? 'ml-4' : '');
+                    
+                    // Create container for the image that will handle orientation
+                    const imageContainer = document.createElement('div');
+                    imageContainer.className = 'document-container portrait-container';
+                    
+                    const img = document.createElement('img');
+                    img.className = 'document-preview portrait';
+                    img.src = image.src;
+                    img.alt = "Document preview";
+                    
+                    imageContainer.appendChild(img);
+                    
+                    const caption = document.createElement('p');
+                    caption.className = 'text-center text-sm mt-2';
+                    caption.textContent = `File ${index + 1} (1 page)`;
+                    
+                    previewDiv.appendChild(imageContainer);
+                    previewDiv.appendChild(caption);
+                    previewContainer.appendChild(previewDiv);
+                });
+                
+                // Update total pages count
+                document.getElementById('total-pages').textContent = `Total ${uploadedImages.length} page${uploadedImages.length > 1 ? 's' : ''}`;
+                
+                // Initialize print settings
+                selectOption('print-color', 'bw');
+                selectOption('print-orientation', 'portrait');
+                updateTotalPrice();
+            } else {
+                // Redirect back to upload page if no images in localStorage
+                alert('No images found. Please upload images first.');
+                window.location.href = 'upload.html';
+            }
+        };
+
+        function updateCopies(increment) {
+            const copiesInput = document.getElementById('copies');
+            let currentValue = parseInt(copiesInput.value);
+            if (increment) {
+                currentValue++;
+            } else {
+                if (currentValue > 1) {
+                    currentValue--;
+                }
+            }
+            copiesInput.value = currentValue;
+            updateTotalPrice();
+        }
+
+        function selectOption(optionType, value) {
+            const options = document.querySelectorAll(`.${optionType}`);
+            options.forEach(option => {
+                option.classList.remove('bg-green-500', 'text-white');
+                option.classList.add('border', 'text-gray-600');
+            });
+            const selectedOption = document.getElementById(`${optionType}-${value}`);
+            selectedOption.classList.add('bg-green-500', 'text-white');
+            selectedOption.classList.remove('border', 'text-gray-600');
+
+            if (optionType === 'print-color') {
+                pricePerPage = value === 'bw' ? 3 : 10; // Set price based on selection
+                updateTotalPrice();
+                
+                // Apply or remove B&W filter based on selection
+                if (value === 'bw') {
+                    applyBWFilter();
+                } else {
+                    removeBWFilter();
+                }
+            } else if (optionType === 'print-orientation') {
+                currentOrientation = value; // Update current orientation
+                updateOrientation();
+            }
+        }
+
+        function updateTotalPrice() {
+            const copies = parseInt(document.getElementById('copies').value);
+            const pageCount = uploadedImages.length;
+            const totalPrice = copies * pricePerPage * pageCount;
+            document.getElementById('total-price').innerText = `₹${totalPrice}`;
+        }
+
+        function updateOrientation() {
+            // Update image orientation
+            const documentImages = document.querySelectorAll('.document-preview');
+            documentImages.forEach(image => {
+                image.classList.remove('portrait', 'landscape');
+                image.classList.add(currentOrientation);
+            });
+            
+            // Update container orientation
+            const documentContainers = document.querySelectorAll('.document-container');
+            documentContainers.forEach(container => {
+                if (currentOrientation === 'portrait') {
+                    container.classList.remove('landscape-container');
+                    container.classList.add('portrait-container');
+                } else {
+                    container.classList.remove('portrait-container');
+                    container.classList.add('landscape-container');
+                }
+            });
+        }
+        
+        // Function to apply B&W filter to images
+        function applyBWFilter() {
+            isBW = true;
+            const documentImages = document.querySelectorAll('.document-preview');
+            documentImages.forEach(image => {
+                image.classList.add('grayscale');
+            });
+        }
+        
+        // Function to remove B&W filter from images
+        function removeBWFilter() {
+            isBW = false;
+            const documentImages = document.querySelectorAll('.document-preview');
+            documentImages.forEach(image => {
+                image.classList.remove('grayscale');
+            });
+        }
+        
+        function backToUpload() {
+            window.location.href = 'upload.html';
+        }
+    </script>
+</head>
+<body class="bg-gray-100">
+    <header class="bg-white shadow-md">
+        <div class="container mx-auto flex justify-between items-center py-4 px-6">
+            <div class="flex items-center">
+                <span class="nav-title">CloudCopy</span>
+                <span class="nav-subtitle ml-4">Make your Work Easy</span>
+            </div>
+            <div class="flex items-center space-x-4">
+                <input class="search-input rounded-md py-2 px-4 text-sm w-64 focus:outline-none" placeholder="Search" type="text"/>
+                <button class="text-sm text-white hover:bg-[#0b7daa] transition-colors duration-200">Login</button>
+                <button class="text-white py-2 px-4 rounded-md hover:bg-[#0b7daa] transition-colors duration-200">My Cart</button>
+            </div>
+        </div>
+    </header>
+    
+    <!-- Preview Page -->
+    <!-- Load Stripe.js -->
+    <script src="https://js.stripe.com/v3/"></script>
+    <main class="container mx-auto mt-8 px-6">
+        <h1 class="text-center text-2xl font-semibold mb-6">Printout Preview</h1>
+        <div id="document-previews" class="flex justify-center mb-6">
+            <!-- Document previews will be added here dynamically -->
+        </div>
+        <div class="bg-white shadow-md rounded-md p-6">
+            <h2 class="text-lg font-semibold mb-4">Print Settings</h2>
+            <p class="text-sm text-gray-600 mb-4">Some print settings apply to all files</p>
+            <div class="flex items-center mb-4">
+                <label class="text-sm font-semibold mr-4">Choose number of copies</label>
+                <div class="flex items-center border rounded-md">
+                    <button class="px-4 py-2 text-white" onclick="updateCopies(false)">-</button>
+                    <input class="w-12 text-center border-l border-r py-2" id="copies" type="text" value="1" oninput="updateTotalPrice()"/>
+                    <button class="px-4 py-2 text-white" onclick="updateCopies(true)">+</button>
+                </div>
+            </div>
+            <div class="flex items-center mb-4">
+                <label class="text-sm font-semibold mr-4">Choose print colour</label>
+                <div class="flex items-center">
+                    <button class="flex items-center border rounded-md px-4 py-2 mr-4 print-color text-white" id="print-color-bw" onclick="selectOption('print-color', 'bw')">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                        </svg>
+                        <span class="text-sm">B&W</span>
+                    </button>
+                    <button class="flex items-center border rounded-md px-4 py-2 print-color text-white" id="print-color-color" onclick="selectOption('print-color', 'color')">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+                        </svg>
+                        <span class="text-sm">Color</span>
+                    </button>
+                </div>
+            </div>
+            <div class="flex items-center mb-4">
+                <label class="text-sm font-semibold mr-4">Choose print orientation</label>
+                <div class="flex items-center">
+                    <button class="flex items-center border rounded-md px-4 py-2 mr-4 print-orientation text-white" id="print-orientation-portrait" onclick="selectOption('print-orientation', 'portrait')">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                        </svg>
+                        <span class="text-sm">Portrait</span>
+                    </button>
+                    <button class="flex items-center border rounded-md px-4 py-2 print-orientation text-white" id="print-orientation-landscape" onclick="selectOption('print-orientation', 'landscape')">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16" />
+                        </svg>
+                        <span class="text-sm">Landscape</span>
+                    </button>
+                </div>
+            </div>
+            <div class="flex justify-between items-center mt-6">
+                <div class="flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <span class="text-sm" id="total-pages">Total 0 pages</span>
+                </div>
+                <div class="flex items-center">
+                    <button onclick="backToUpload()" class="border border-green-500 text-green-500 py-2 px-4 rounded-md mr-4">Back to Upload</button>
+                    <span class="text-lg font-semibold mr-4" id="total-price">₹0</span>
+                    <button class="bg-[#0d96cc] text-white py-2 px-4 rounded-md hover:bg-[#0b7daa]" id="checkout-button">Pay Now</button>
+                </div>
+            </div>
+        </div>
+        
+<!-- Replace just the script section for the checkout button -->
+<script>
+    // Initialize Stripe with error handling
+    let stripe;
+    try {
+        stripe = Stripe('pk_test_51R5Wo4CRgXwrIeaEM7Edt90x0Ary0JsaKVjKE5FYWyWxPvpSy9iSgMFrGfYZzCIqnF6xG3x5oAjAsrdFinc0FQGW009XVy9t6E');
+    } catch (error) {
+        console.error('Failed to initialize Stripe:', error);
+        alert('Payment system initialization failed. Please try again later.');
+    }
+
+    document.getElementById('checkout-button').addEventListener('click', async () => {
+        if (!stripe) {
+            alert('Payment system is not available. Please try again later.');
+            return;
+        }
+
+        // Get the current print settings
+        const copies = parseInt(document.getElementById('copies').value);
+        const pageCount = uploadedImages.length;
+        const totalPrice = copies * pricePerPage * pageCount;
+        const colorMode = isBW ? 'B&W' : 'Color';
+        const orientation = currentOrientation;
+        
+        try {
+            const response = await fetch('http://localhost:3000/create-checkout-session', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    items: [{
+                        quantity: copies,
+                        pages: pageCount,
+                        colorMode: colorMode,
+                        orientation: orientation,
+                        totalPrice: totalPrice
+                    }]
+                })
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const session = await response.json();
+            
+            // Check if minimum charge was applied
+            if (session.minimum_charge_applied) {
+                const proceed = confirm(
+                    `Your total is ₹${session.actual_amount}, which is below Stripe's minimum charge.\n\n` +
+                    `A minimum charge of ₹${session.charged_amount} will be applied.\n\n` +
+                    `Do you want to continue?`
+                );
+                
+                if (!proceed) {
+                    return;
+                }
+            }
+            
+            if (session.id) {
+                // Use Stripe's redirectToCheckout method
+                const result = await stripe.redirectToCheckout({
+                    sessionId: session.id
+                });
+                
+                if (result.error) {
+                    alert(result.error.message);
+                }
+            } else {
+                alert('Failed to create checkout session');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            if (error.message.includes('Failed to fetch')) {
+                alert('Unable to connect to the payment server. Please check your internet connection and try again.');
+            } else {
+                alert('Payment processing error. Please try again.');
+            }
+        }
+    });
+</script>
+    </main>
+</body>
+</html>

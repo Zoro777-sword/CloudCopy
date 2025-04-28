@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CloudCopy - Admin Panel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .sidebar {
+            width: 250px;
+            background-color: #0d96cc;
+            color: white;
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+        }
+        
+        .main-content {
+            margin-left: 250px;
+            padding: 20px;
+            margin-top: 50px;
+        }
+        
+        .nav-link {
+            padding: 12px 20px;
+            display: block;
+            color: white;
+            text-decoration: none;
+            transition: background-color 0.3s;
+        }
+        
+        .nav-link:hover {
+            background-color: #0b7daa;
+        }
+        
+        .active {
+            background-color: #0b7daa;
+        }
+        
+        .stat-card {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        /* Notice Bar Styles */
+        .notice-bar {
+            background-color: #0d96cc;
+            color: white;
+            padding: 10px 0;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            overflow: hidden;
+            margin-left: 250px;
+        }
+
+        .notice-text {
+            display: inline-block;
+            white-space: nowrap;
+            animation: moveText 20s linear infinite;
+            font-weight: 500;
+            font-size: 1.1rem;
+        }
+
+        @keyframes moveText {
+            0% {
+                transform: translateX(100%);
+            }
+            100% {
+                transform: translateX(-100%);
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="p-4">
+            <h1 class="text-2xl font-bold">CloudCopy Admin</h1>
+        </div>
+        <nav>
+            <a href="#dashboard" class="nav-link active">Dashboard</a>
+            <a href="#orders" class="nav-link">Orders</a>
+            <a href="#users" class="nav-link">Users</a>
+            <a href="#products" class="nav-link">Products</a>
+            <a href="#settings" class="nav-link">Settings</a>
+        </nav>
+    </div>
+
+    <!-- Notice Bar -->
+    <div class="notice-bar">
+        <div class="notice-text">
+            🚀 Shop is open today! Special discounts available on all products. Limited time offer! 🎉
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="mb-8">
+            <h2 class="text-3xl font-bold">Dashboard</h2>
+            <p class="text-gray-600">Welcome to the admin panel</p>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="stat-card">
+                <h3 class="text-lg font-semibold text-gray-700">Total Orders</h3>
+                <p class="text-3xl font-bold text-[#0d96cc]">1,234</p>
+                <p class="text-sm text-gray-500">+12% from last month</p>
+            </div>
+            <div class="stat-card">
+                <h3 class="text-lg font-semibold text-gray-700">Total Revenue</h3>
+                <p class="text-3xl font-bold text-[#0d96cc]">₹45,678</p>
+                <p class="text-sm text-gray-500">+8% from last month</p>
+            </div>
+            <div class="stat-card">
+                <h3 class="text-lg font-semibold text-gray-700">Active Users</h3>
+                <p class="text-3xl font-bold text-[#0d96cc]">567</p>
+                <p class="text-sm text-gray-500">+5% from last month</p>
+            </div>
+        </div>
+
+        <!-- Recent Orders Table -->
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <h3 class="text-xl font-semibold mb-4">Recent Orders</h3>
+            <div class="overflow-x-auto">
+                <table class="min-w-full">
+                    <thead>
+                        <tr class="bg-gray-50">
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order ID</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap">#12345</td>
+                            <td class="px-6 py-4 whitespace-nowrap">John Doe</td>
+                            <td class="px-6 py-4 whitespace-nowrap">₹1,234</td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                    Completed
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">2024-02-20</td>
+                        </tr>
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap">#12346</td>
+                            <td class="px-6 py-4 whitespace-nowrap">Jane Smith</td>
+                            <td class="px-6 py-4 whitespace-nowrap">₹2,345</td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                    Pending
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">2024-02-20</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Add active class to current nav item
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', function() {
+                document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+    </script>
+</body>
+</html> 

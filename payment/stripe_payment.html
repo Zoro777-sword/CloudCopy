@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Processing</title>
+    <script src="https://js.stripe.com/v3/"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f5f5f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .payment-container {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 500px;
+        }
+
+        .payment-title {
+            text-align: center;
+            margin-bottom: 2rem;
+            color: #333;
+        }
+
+        .amount-display {
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #4a6fa5;
+            margin-bottom: 2rem;
+        }
+
+        #payment-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .form-row {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        label {
+            font-weight: 500;
+            color: #555;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .input-group .form-row {
+            flex: 1;
+        }
+
+        #card-element {
+            padding: 1rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: white;
+        }
+
+        #card-errors {
+            color: #dc3545;
+            font-size: 0.875rem;
+            margin-top: 0.5rem;
+        }
+
+        button {
+            background: #4a6fa5;
+            color: white;
+            border: none;
+            padding: 1rem;
+            border-radius: 4px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            margin-top: 1rem;
+        }
+
+        button:hover {
+            background: #3a5985;
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .payment-success {
+            text-align: center;
+            color: #28a745;
+            margin-top: 1rem;
+        }
+
+        .payment-error {
+            text-align: center;
+            color: #dc3545;
+            margin-top: 1rem;
+        }
+
+        .back-button {
+            background: #6c757d;
+            margin-top: 1rem;
+        }
+
+        .back-button:hover {
+            background: #5a6268;
+        }
+    </style>
+</head>
+<body>
+    <div class="payment-container">
+        <h2 class="payment-title">Complete Your Payment</h2>
+        <div class="amount-display" id="amount-display">Total Amount: ₹0.00</div>
+        <form id="payment-form">
+            <div class="form-row">
+                <label for="name">Full Name</label>
+                <input type="text" id="name" placeholder="John Doe" required>
+            </div>
+            
+            <div class="form-row">
+                <label for="email">Email</label>
+                <input type="email" id="email" placeholder="john@example.com" required>
+            </div>
+
+            <div class="form-row">
+                <label for="phone">Phone Number</label>
+                <input type="tel" id="phone" placeholder="+91 1234567890" required>
+            </div>
+
+            <div class="form-row">
+                <label for="address">Billing Address</label>
+                <textarea id="address" rows="3" placeholder="Enter your billing address" required></textarea>
+            </div>
+
+            <div class="form-row">
+                <label for="card-element">Card Details</label>
+                <div id="card-element"></div>
+                <div id="card-errors" role="alert"></div>
+            </div>
+
+            <div class="input-group">
+                <div class="form-row">
+                    <label for="expiry">Expiry Date</label>
+                    <input type="text" id="expiry" placeholder="MM/YY" required>
+                </div>
+                <div class="form-row">
+                    <label for="cvc">CVC</label>
+                    <input type="text" id="cvc" placeholder="123" required>
+                </div>
+            </div>
+
+            <button type="submit" id="submit-button">Pay Now</button>
+            <button type="button" class="back-button" id="back-button">Back to Cart</button>
+        </form>
+        <div id="payment-message" class="payment-success" style="display: none;"></div>
+    </div>
+
+    <script>
+        // Initialize Stripe with your publishable key
+        const stripe = Stripe('pk_test_51N...'); // Replace with your publishable key
+        
+        // Create an instance of Elements
+        const elements = stripe.elements();
+        
+        // Create card Element
+        const card = elements.create('card', {
+            style: {
+                base: {
+                    fontSize: '16px',
+                    color: '#32325d',
+                    '::placeholder': {
+                        color: '#aab7c4'
+                    }
+                },
+                invalid: {
+                    color: '#dc3545',
+                    iconColor: '#dc3545'
+                }
+            }
+        });
+        card.mount('#card-element');
+        
+        // Handle real-time validation errors
+        card.addEventListener('change', function(event) {
+            const displayError = document.getElementById('card-errors');
+            if (event.error) {
+                displayError.textContent = event.error.message;
+            } else {
+                displayError.textContent = '';
+            }
+        });
+
+        // Update amount display
+        const urlParams = new URLSearchParams(window.location.search);
+        const amount = urlParams.get('amount');
+        const redirectUrl = urlParams.get('redirectUrl');
+        document.getElementById('amount-display').textContent = `Total Amount: ₹${amount}`;
+        
+        // Handle form submission
+        const form = document.getElementById('payment-form');
+        form.addEventListener('submit', async function(event) {
+            event.preventDefault();
+            
+            const submitButton = document.getElementById('submit-button');
+            submitButton.disabled = true;
+            
+            try {
+                // Get form data
+                const name = document.getElementById('name').value;
+                const email = document.getElementById('email').value;
+                const phone = document.getElementById('phone').value;
+                const address = document.getElementById('address').value;
+                
+                // Create payment method
+                const { paymentMethod, error } = await stripe.createPaymentMethod({
+                    type: 'card',
+                    card: card,
+                    billing_details: {
+                        name: name,
+                        email: email,
+                        phone: phone,
+                        address: {
+                            line1: address
+                        }
+                    }
+                });
+                
+                if (error) {
+                    const errorElement = document.getElementById('card-errors');
+                    errorElement.textContent = error.message;
+                    submitButton.disabled = false;
+                } else {
+                    // Send payment method ID to your server
+                    const response = await fetch('/process-payment', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            paymentMethodId: paymentMethod.id,
+                            amount: amount,
+                            name: name,
+                            email: email,
+                            phone: phone,
+                            address: address
+                        }),
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        document.getElementById('payment-message').textContent = 'Payment successful!';
+                        document.getElementById('payment-message').style.display = 'block';
+                        document.getElementById('payment-form').style.display = 'none';
+                        
+                        // Redirect back to the store after successful payment
+                        setTimeout(() => {
+                            window.location.href = redirectUrl;
+                        }, 2000);
+                    } else {
+                        throw new Error(result.error);
+                    }
+                }
+            } catch (error) {
+                document.getElementById('payment-message').textContent = error.message;
+                document.getElementById('payment-message').style.display = 'block';
+                submitButton.disabled = false;
+            }
+        });
+
+        // Handle back button
+        document.getElementById('back-button').addEventListener('click', function() {
+            window.location.href = redirectUrl;
+        });
+    </script>
+</body>
+</html> 

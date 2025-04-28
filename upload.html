@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>CloudCopy - Upload Files</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        /* Custom button styles */
+        .bg-green-500 {
+            background-color: #0d96cc !important;
+        }
+        
+        .border-green-500 {
+            border-color: #0d96cc !important;
+        }
+        
+        .text-green-500 {
+            color: #0d96cc !important;
+        }
+    </style>
+    <script>
+        // Store uploaded images in localStorage to share between pages
+        let uploadedImages = [];
+        
+        // Function to handle file uploads
+        function handleFileUpload(event) {
+            const files = event.target.files;
+            const previewContainer = document.getElementById('upload-previews');
+            
+            // Clear previous previews
+            uploadedImages = [];
+            previewContainer.innerHTML = '';
+            
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                
+                // Only process image files
+                if (!file.type.match('image.*')) {
+                    continue;
+                }
+                
+                const reader = new FileReader();
+                
+                reader.onload = (function(theFile) {
+                    return function(e) {
+                        // Create preview element
+                        const previewDiv = document.createElement('div');
+                        previewDiv.className = 'bg-white shadow-md rounded-md p-4 m-2';
+                        
+                        const img = document.createElement('img');
+                        img.className = 'max-h-40 mx-auto';
+                        img.src = e.target.result;
+                        img.title = theFile.name;
+                        
+                        const caption = document.createElement('p');
+                        caption.className = 'text-center text-sm mt-2';
+                        caption.textContent = theFile.name;
+                        
+                        previewDiv.appendChild(img);
+                        previewDiv.appendChild(caption);
+                        previewContainer.appendChild(previewDiv);
+                        
+                        // Add to uploaded images array
+                        uploadedImages.push({
+                            name: theFile.name,
+                            src: e.target.result
+                        });
+                        
+                        // Save to localStorage
+                        localStorage.setItem('cloudCopyImages', JSON.stringify(uploadedImages));
+                    };
+                })(file);
+                
+                reader.readAsDataURL(file);
+            }
+            
+            // Show the upload action button after files are added
+            document.getElementById('upload-action').style.display = 'flex';
+        }
+        
+        // Function to proceed to preview page
+        function proceedToPreview() {
+            // Redirect to the preview page
+            window.location.href = 'preview.html';
+        }
+    </script>
+</head>
+<body class="bg-gray-100">
+    <header class="bg-white shadow-md">
+        <div class="container mx-auto flex justify-between items-center py-4 px-6">
+            <div class="flex items-center">
+                <span class="nav-title text-xl">CloudCopy</span>
+                <span class="ml-4 text-sm text-gray-600">Make your Work Easy</span>
+            </div>
+            <div class="flex items-center">
+                <input class="border rounded-md py-2 px-4 text-sm" placeholder="Search" type="text"/>
+                <button class="ml-4 text-sm text-gray-600">Login</button>
+                <button class="ml-4 bg-green-500 text-white py-2 px-4 rounded-md">My Cart</button>
+            </div>
+        </div>
+    </header>
+    
+    <!-- Upload Page -->
+    <main class="container mx-auto mt-8 px-6">
+        <h1 class="text-center text-2xl font-semibold mb-6">Upload Files for Printing</h1>
+        
+        <div class="bg-white shadow-md rounded-md p-6 max-w-2xl mx-auto">
+            <div class="mb-6">
+                <label class="block text-lg font-semibold mb-4">Choose Files to Print</label>
+                <div class="border-dashed border-2 border-gray-300 rounded-md p-8 text-center">
+                    <input type="file" id="file-upload" multiple accept="image/*" onchange="handleFileUpload(event)" class="hidden" />
+                    <label for="file-upload" class="cursor-pointer">
+                        <div class="flex flex-col items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-gray-400 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                            </svg>
+                            <p class="text-md mb-1">Drag and drop files here or click to browse</p>
+                            <p class="text-sm text-gray-500">Supported formats: JPG, PNG, PDF</p>
+                        </div>
+                    </label>
+                </div>
+            </div>
+            
+            <div id="upload-previews" class="flex flex-wrap justify-center mb-6"></div>
+            
+            <div id="upload-action" class="flex justify-center mt-4" style="display: none;">
+                <button onclick="proceedToPreview()" class="bg-green-500 text-white py-2 px-6 rounded-md">Proceed to Print Settings</button>
+            </div>
+        </div>
+    </main>
+</body>
+</html>
