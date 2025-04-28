@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CloudCopy - Admin Panel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        .sidebar {
+            width: 250px;
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            background-color: #0d96cc;
+            color: white;
+            transition: all 0.3s;
+        }
+
+        .main-content {
+            margin-left: 250px;
+            padding: 20px;
+            transition: all 0.3s;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .order-item {
+            border-bottom: 1px solid #e5e7eb;
+            padding: 15px 0;
+        }
+
+        .order-item:last-child {
+            border-bottom: none;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 0;
+                transform: translateX(-100%);
+            }
+
+            .sidebar.active {
+                width: 250px;
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            .main-content.active {
+                margin-left: 250px;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="p-4">
+            <h2 class="text-2xl font-bold mb-8">CloudCopy Admin</h2>
+            <nav>
+                <ul class="space-y-4">
+                    <li>
+                        <a href="#" class="flex items-center p-2 hover:bg-white hover:bg-opacity-20 rounded">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                            </svg>
+                            Dashboard
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="flex items-center p-2 hover:bg-white hover:bg-opacity-20 rounded">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                            </svg>
+                            Orders
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="flex items-center p-2 hover:bg-white hover:bg-opacity-20 rounded">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+                            </svg>
+                            Users
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="flex items-center p-2 hover:bg-white hover:bg-opacity-20 rounded">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                            </svg>
+                            Statistics
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="flex items-center p-2 hover:bg-white hover:bg-opacity-20 rounded">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            </svg>
+                            Settings
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Top Bar -->
+        <div class="flex justify-between items-center mb-8">
+            <button class="md:hidden p-2" onclick="toggleSidebar()">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                </svg>
+            </button>
+            <div class="flex items-center">
+                <input type="text" placeholder="Search..." class="border rounded-lg px-4 py-2">
+                <button class="ml-4 bg-white p-2 rounded-full">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Dashboard Stats -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="stat-card">
+                <h3 class="text-gray-500 text-sm">Total Orders</h3>
+                <p class="text-3xl font-bold">1,234</p>
+                <p class="text-green-500 text-sm">↑ 12% from last month</p>
+            </div>
+            <div class="stat-card">
+                <h3 class="text-gray-500 text-sm">Revenue</h3>
+                <p class="text-3xl font-bold">₹45,678</p>
+                <p class="text-green-500 text-sm">↑ 8% from last month</p>
+            </div>
+            <div class="stat-card">
+                <h3 class="text-gray-500 text-sm">Active Users</h3>
+                <p class="text-3xl font-bold">567</p>
+                <p class="text-green-500 text-sm">↑ 5% from last month</p>
+            </div>
+            <div class="stat-card">
+                <h3 class="text-gray-500 text-sm">Pending Orders</h3>
+                <p class="text-3xl font-bold">23</p>
+                <p class="text-red-500 text-sm">↓ 3% from last month</p>
+            </div>
+        </div>
+
+        <!-- Recent Orders -->
+        <div class="bg-white rounded-lg shadow p-6 mb-8">
+            <h2 class="text-xl font-bold mb-4">Recent Orders</h2>
+            <div class="overflow-x-auto">
+                <table class="min-w-full">
+                    <thead>
+                        <tr class="border-b">
+                            <th class="text-left py-3 px-4">Order ID</th>
+                            <th class="text-left py-3 px-4">Customer</th>
+                            <th class="text-left py-3 px-4">Type</th>
+                            <th class="text-left py-3 px-4">Status</th>
+                            <th class="text-left py-3 px-4">Amount</th>
+                            <th class="text-left py-3 px-4">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="order-item">
+                            <td class="py-3 px-4">#12345</td>
+                            <td class="py-3 px-4">John Doe</td>
+                            <td class="py-3 px-4">Color Print</td>
+                            <td class="py-3 px-4">
+                                <span class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs">Pending</span>
+                            </td>
+                            <td class="py-3 px-4">₹450</td>
+                            <td class="py-3 px-4">
+                                <button class="text-blue-500 hover:text-blue-700">View</button>
+                            </td>
+                        </tr>
+                        <tr class="order-item">
+                            <td class="py-3 px-4">#12344</td>
+                            <td class="py-3 px-4">Jane Smith</td>
+                            <td class="py-3 px-4">B&W Print</td>
+                            <td class="py-3 px-4">
+                                <span class="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs">Completed</span>
+                            </td>
+                            <td class="py-3 px-4">₹250</td>
+                            <td class="py-3 px-4">
+                                <button class="text-blue-500 hover:text-blue-700">View</button>
+                            </td>
+                        </tr>
+                        <tr class="order-item">
+                            <td class="py-3 px-4">#12343</td>
+                            <td class="py-3 px-4">Mike Johnson</td>
+                            <td class="py-3 px-4">Color Print</td>
+                            <td class="py-3 px-4">
+                                <span class="bg-red-100 text-red-800 px-2 py-1 rounded-full text-xs">Cancelled</span>
+                            </td>
+                            <td class="py-3 px-4">₹600</td>
+                            <td class="py-3 px-4">
+                                <button class="text-blue-500 hover:text-blue-700">View</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Charts Section -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="bg-white rounded-lg shadow p-6">
+                <h2 class="text-xl font-bold mb-4">Revenue Overview</h2>
+                <div class="h-64 bg-gray-100 rounded">
+                    <!-- Chart will be added here -->
+                    <p class="text-center text-gray-500 mt-24">Revenue chart will be displayed here</p>
+                </div>
+            </div>
+            <div class="bg-white rounded-lg shadow p-6">
+                <h2 class="text-xl font-bold mb-4">Order Types</h2>
+                <div class="h-64 bg-gray-100 rounded">
+                    <!-- Chart will be added here -->
+                    <p class="text-center text-gray-500 mt-24">Order type distribution chart will be displayed here</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            const mainContent = document.querySelector('.main-content');
+            sidebar.classList.toggle('active');
+            mainContent.classList.toggle('active');
+        }
+    </script>
+</body>
+</html>
